@@ -27,9 +27,21 @@ function Facedetector() {
 
   // Assuming `faceDetection` is available
   useEffect(() => {
+    const handleVideo = async () => {
+      setTimeout(handleVideo, 500);
+      const video = document.getElementById('videoFeed');
+      const estimationConfig = { flipHorizontal: false };
+      if(detector)
+      {
+        const faces = await detector.estimateFaces(video, estimationConfig);
+        console.log(faces.length)
+        setFaces(faces.length)
+      }
+    };
     const createDetectorAsync = async () => {
       const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
       const detectorConfig = {
+        maxFaces:3,
         runtime: 'tfjs',
       };
 
@@ -43,19 +55,13 @@ function Facedetector() {
           }
           return stream;
         });
-        const detector = await faceDetection.createDetector(
-          model,
-          detectorConfig
-        );
-        setDetector(detector);
-
-        const handleVideo = async () => {
-          const video = document.getElementById('videoFeed');
-          const estimationConfig = { flipHorizontal: false };
-          const faces = await detector.estimateFaces(video, estimationConfig);
-          setFaces(faces.length);
-          setTimeout(handleVideo, 500);
-        };
+        if(!detector){
+          const detector = await faceDetection.createDetector(
+            model,
+            detectorConfig
+          ); 
+          setDetector(detector);
+        }
         handleVideo();
       } catch (error) {
         console.error('Error creating detector:', error);
@@ -70,7 +76,7 @@ function Facedetector() {
         videoStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [videoRef]);
+  }, [videoRef,detector]);
 
   return (
     <div className="faceDetector">
